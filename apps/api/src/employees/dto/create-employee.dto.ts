@@ -1,4 +1,4 @@
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateEmployeeDto {
   @IsString()
@@ -9,6 +9,13 @@ export class CreateEmployeeDto {
 
   @IsString()
   lastName!: string;
+
+  @IsString()
+  @MinLength(8)
+  password!: string;
+
+  @IsString()
+  siteId!: string;
 
   @IsOptional()
   @IsString()

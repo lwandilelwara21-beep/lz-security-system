@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -80,6 +82,8 @@ export class EmployeesService {
     employeeNumber: string;
     firstName: string;
     lastName: string;
+    password: string;
+    siteId: string;
     phoneNumber?: string | null;
     active?: boolean;
   }) {
@@ -91,15 +95,81 @@ export class EmployeesService {
       throw new ConflictException('Employee number already exists');
     }
 
-    return this.prisma.employee.create({
-      data: {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { employeeNumber: data.employeeNumber },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('An account already exists for this employee number');
+    }
+
+    const site = await this.prisma.site.findFirst({
+      where: {
+        id: data.siteId,
         companyId: data.companyId,
-        employeeNumber: data.employeeNumber,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phoneNumber: data.phoneNumber ?? null,
-        active: data.active ?? true,
+        active: true,
       },
+    });
+
+    if (!site) {
+      throw new BadRequestException('Select an active site for this employee');
+    }
+
+    let role = await this.prisma.role.findFirst({
+      where: {
+        companyId: data.companyId,
+        name: 'SECURITY_OFFICER',
+      },
+    });
+
+    if (!role) {
+      role = await this.prisma.role.create({
+        data: {
+          companyId: data.companyId,
+          name: 'SECURITY_OFFICER',
+          permissions: JSON.stringify({ attendance: true }),
+        },
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(data.password, 10);
+
+    return this.prisma.$transaction(async (transaction) => {
+      const user = await transaction.user.create({
+        data: {
+          companyId: data.companyId,
+          roleId: role.id,
+          employeeNumber: data.employeeNumber,
+          passwordHash,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.phoneNumber ?? null,
+          status: 'ACTIVE',
+        },
+      });
+
+      const employee = await transaction.employee.create({
+        data: {
+          companyId: data.companyId,
+          userId: user.id,
+          employeeNumber: data.employeeNumber,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.phoneNumber ?? null,
+          active: data.active ?? true,
+        },
+      });
+
+      await transaction.siteAssignment.create({
+        data: {
+          companyId: data.companyId,
+          employeeId: employee.id,
+          siteId: site.id,
+          active: true,
+        },
+      });
+
+      return employee;
     });
   }
 
