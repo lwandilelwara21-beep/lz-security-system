@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id          String    @id @default(uuid())
+  name        String
+  status      String    @default("ACTIVE")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  users       User[]
+  roles       Role[]
+  employees   Employee[]
+  sites       Site[]
+  shifts      Shift[]
+  auditLogs   AuditLog[]
+  notifications Notification[]
+  settings    CompanySetting[]
+  assignments SiteAssignment[]
+  attendanceRecords AttendanceRecord[]
+}
+
+model Role {
+  id          String    @id @default(uuid())
+  companyId   String
+  name        String
+  permissions String    @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  company     Company   @relation(fields: [companyId], references: [id])
+  users       User[]
+}
+
+model User {
+  id             String    @id @default(uuid())
+  companyId      String
+  roleId         String
+  email          String?   @unique
+  employeeNumber String?   @unique
+  passwordHash   String
+  status         String     @default("ACTIVE")
+  firstName      String?
+  lastName       String?
+  phoneNumber    String?
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  company        Company   @relation(fields: [companyId], references: [id])
+  role           Role      @relation(fields: [roleId], references: [id])
+  employee       Employee?
+  auditLogs      AuditLog[]
+  notifications  Notification[]
+  refreshTokens  RefreshToken[]
+}
+
+model Employee {
+  id             String    @id @default(uuid())
+  companyId      String
+  userId         String?   @unique
+  employeeNumber String    @unique
+  firstName      String
+  lastName       String
+  phoneNumber    String?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  company        Company   @relation(fields: [companyId], references: [id])
+  user           User?     @relation(fields: [userId], references: [id])
+  assignments    SiteAssignment[]
+  attendanceRecords AttendanceRecord[]
+}
+
+model Site {
+  id             String    @id @default(uuid())
+  companyId      String
+  name           String
+  address        String?
+  latitude       Float?
+  longitude      Float?
+  geofenceRadius Float?    @default(100)
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  company        Company   @relation(fields: [companyId], references: [id])
+  assignments    SiteAssignment[]
+  shifts         Shift[]
+  attendance     AttendanceRecord[]
+}
+
+model SiteAssignment {
+  id          String    @id @default(uuid())
+  companyId   String
+  employeeId  String
+  siteId      String
+  assignedAt  DateTime  @default(now())
+  removedAt   DateTime?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  company     Company   @relation(fields: [companyId], references: [id])
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  site        Site      @relation(fields: [siteId], references: [id])
+}
+
+model Shift {
+  id          String    @id @default(uuid())
+  companyId   String
+  siteId      String?
+  name        String
+  startTime   String
+  endTime     String
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  company     Company   @relation(fields: [companyId], references: [id])
+  site        Site?     @relation(fields: [siteId], references: [id])
+  attendance  AttendanceRecord[]
+}
+
+model AttendanceRecord {
+  id             String             @id @default(uuid())
+  companyId      String
+  employeeId     String
+  siteId         String?
+  shiftId        String?
+  clockInAt      DateTime?
+  clockOutAt     DateTime?
+  status         String             @default("PRESENT")
+  lateFlag       Boolean            @default(false)
+  totalHours     Float?
+  notes          String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  company        Company            @relation(fields: [companyId], references: [id])
+  employee       Employee           @relation(fields: [employeeId], references: [id])
+  site           Site?              @relation(fields: [siteId], references: [id])
+  shift          Shift?             @relation(fields: [shiftId], references: [id])
+  events         AttendanceEvent[]
+  adjustments    AttendanceAdjustment[]
+}
+
+model AttendanceEvent {
+  id               String               @id @default(uuid())
+  attendanceRecordId String
+  eventType        String
+  eventTime        DateTime             @default(now())
+  sourceDevice     String?
+  ipAddressHash    String?
+  gpsLatitude      Float?
+  gpsLongitude     Float?
+  gpsAccuracy      Float?
+  status           String?
+  createdAt        DateTime             @default(now())
+
+  attendanceRecord AttendanceRecord     @relation(fields: [attendanceRecordId], references: [id])
+}
+
+model AttendanceAdjustment {
+  id               String    @id @default(uuid())
+  attendanceRecordId String
+  originalValue    String
+  newValue         String
+  reason           String
+  changedByUserId  String
+  changedAt        DateTime  @default(now())
+
+  attendanceRecord AttendanceRecord @relation(fields: [attendanceRecordId], references: [id])
+}
+
+model AuditLog {
+  id           String    @id @default(uuid())
+  companyId    String
+  actorUserId  String?
+  action       String
+  targetType   String
+  targetId     String?
+  metadata     String?
+  createdAt    DateTime  @default(now())
+
+  company      Company   @relation(fields: [companyId], references: [id])
+  actorUser    User?     @relation(fields: [actorUserId], references: [id])
+}
+
+model Notification {
+  id           String    @id @default(uuid())
+  companyId    String
+  userId       String?
+  type         String
+  status       String
+  payload      String?
+  createdAt    DateTime  @default(now())
+
+  company      Company   @relation(fields: [companyId], references: [id])
+  user         User?     @relation(fields: [userId], references: [id])
+}
+
+model CompanySetting {
+  id          String    @id @default(uuid())
+  companyId   String
+  key         String
+  value       String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  company     Company   @relation(fields: [companyId], references: [id])
+}
+
+model RefreshToken {
+  id           String    @id @default(uuid())
+  userId       String
+  tokenHash    String
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id])
+}
