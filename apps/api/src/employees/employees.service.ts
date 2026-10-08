@@ -27,9 +27,9 @@ export class EmployeesService {
     if (filters.search) {
       const search = filters.search.trim();
       where.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
-        { employeeNumber: { contains: search, mode: 'insensitive' } },
+        { firstName: { contains: search } },
+        { lastName: { contains: search } },
+        { employeeNumber: { contains: search } },
       ];
     }
 

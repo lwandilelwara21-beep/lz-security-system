@@ -81,4 +81,29 @@ describe('EmployeesService', () => {
 
     expect(result.total).toBe(0);
   });
+
+  it('builds a SQLite-compatible employee search query', async () => {
+    const prisma = {
+      employee: {
+        findMany: jest.fn().mockResolvedValue([]),
+        count: jest.fn().mockResolvedValue(0),
+      },
+    };
+
+    const service = new EmployeesService(prisma as any);
+    await service.listEmployees({ companyId: 'company-1', search: 'guard' });
+
+    expect(prisma.employee.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          companyId: 'company-1',
+          OR: [
+            { firstName: { contains: 'guard' } },
+            { lastName: { contains: 'guard' } },
+            { employeeNumber: { contains: 'guard' } },
+          ],
+        },
+      }),
+    );
+  });
 });

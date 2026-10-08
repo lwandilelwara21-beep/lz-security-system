@@ -25,8 +25,8 @@ export class SitesService {
     if (filters.search) {
       const search = filters.search.trim();
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { address: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search } },
+        { address: { contains: search } },
       ];
     }
 
