@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { authenticatedFetch } from '../lib/api';
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3001'}/api/v1`;
 
@@ -63,23 +64,27 @@ export default function HomePage() {
     if (!authToken) return;
 
     try {
-      const [summaryResult, sitesResult, historyResult] = await Promise.all([
-        fetch(`${API_BASE}/dashboard/summary`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }),
-        fetch(`${API_BASE}/sites?limit=100`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }),
-        fetch(`${API_BASE}/attendance/my-history?limit=10`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }),
+      const [summaryRequest, sitesRequest, historyRequest] = await Promise.all([
+        authenticatedFetch('/dashboard/summary', authToken, 'lz-security-token', 'lz-security-refresh'),
+        authenticatedFetch('/sites?limit=100', authToken, 'lz-security-token', 'lz-security-refresh'),
+        authenticatedFetch('/attendance/my-history?limit=10', authToken, 'lz-security-token', 'lz-security-refresh'),
       ]);
+
+      const summaryResult = summaryRequest.response;
+      const sitesResult = sitesRequest.response;
+      const historyResult = historyRequest.response;
+      const nextToken = summaryRequest.accessToken;
+      if (nextToken !== authToken) setAccessToken(nextToken);
+
+      if ([summaryResult, sitesResult, historyResult].some((response) => response.status === 401)) {
+        localStorage.removeItem('lz-security-session');
+        localStorage.removeItem('lz-security-token');
+        localStorage.removeItem('lz-security-refresh');
+        setSession(null);
+        setAccessToken('');
+        setMessage('Your administrator session expired. Please sign in again.');
+        return;
+      }
 
       const summaryData = await summaryResult.json();
       const sitesData = await sitesResult.json();
@@ -135,11 +140,12 @@ export default function HomePage() {
       headers.Authorization = `Bearer ${accessToken}`;
     }
 
-    const response = await fetch(`${API_BASE}${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    const init = { method, headers, body: body ? JSON.stringify(body) : undefined };
+    const request = accessToken
+      ? await authenticatedFetch(path, accessToken, 'lz-security-token', 'lz-security-refresh', init)
+      : { response: await fetch(`${API_BASE}${path}`, init), accessToken: '' };
+    const response = request.response;
+    if (request.accessToken && request.accessToken !== accessToken) setAccessToken(request.accessToken);
 
     const data = await response.json().catch(() => ({}));
 
@@ -165,6 +171,7 @@ export default function HomePage() {
       if (nextSession.role !== 'SUPER_ADMIN' && nextSession.role !== 'COMPANY_ADMIN') {
         localStorage.setItem('lz-employee-session', JSON.stringify(nextSession));
         localStorage.setItem('lz-employee-token', result.accessToken);
+        localStorage.setItem('lz-employee-refresh', result.refreshToken);
         router.push('/clock-in');
         return;
       }
@@ -173,6 +180,7 @@ export default function HomePage() {
       setAccessToken(result.accessToken);
       localStorage.setItem('lz-security-session', JSON.stringify(nextSession));
       localStorage.setItem('lz-security-token', result.accessToken);
+      localStorage.setItem('lz-security-refresh', result.refreshToken);
       setMessage('Administrator login successful.');
       await loadDashboard(result.accessToken);
     } catch (error) {
@@ -234,6 +242,7 @@ export default function HomePage() {
   function handleLogout() {
     localStorage.removeItem('lz-security-session');
     localStorage.removeItem('lz-security-token');
+    localStorage.removeItem('lz-security-refresh');
     setSession(null);
     setAccessToken('');
     setMessage('You have been logged out.');

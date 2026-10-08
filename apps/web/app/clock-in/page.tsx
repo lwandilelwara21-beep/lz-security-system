@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { authenticatedFetch } from '../../lib/api';
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3001'}/api/v1`;
 
@@ -34,10 +35,23 @@ export default function EmployeeClockInPage() {
   const [loading, setLoading] = useState(false);
 
   const loadAttendance = useCallback(async (token: string) => {
-    const response = await fetch(`${API_BASE}/attendance/my-history?limit=10`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const request = await authenticatedFetch(
+      '/attendance/my-history?limit=10',
+      token,
+      'lz-employee-token',
+      'lz-employee-refresh',
+    );
+    const response = request.response;
+    if (request.accessToken !== token) setAccessToken(request.accessToken);
     const result = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      localStorage.removeItem('lz-employee-session');
+      localStorage.removeItem('lz-employee-token');
+      localStorage.removeItem('lz-employee-refresh');
+      setSession(null);
+      setAccessToken('');
+      throw new Error('Your employee session expired. Sign in again.');
+    }
     if (!response.ok) throw new Error(result.message || 'Could not load attendance status.');
 
     const records = (result.items ?? []) as AttendanceEntry[];
@@ -82,6 +96,7 @@ export default function EmployeeClockInPage() {
       setAccessToken(result.accessToken);
       localStorage.setItem('lz-employee-session', JSON.stringify(nextSession));
       localStorage.setItem('lz-employee-token', result.accessToken);
+      localStorage.setItem('lz-employee-refresh', result.refreshToken);
       setPassword('');
       setConfirmation(null);
       await loadAttendance(result.accessToken);
@@ -100,14 +115,19 @@ export default function EmployeeClockInPage() {
 
     const clockingOut = Boolean(activeRecord);
     try {
-      const response = await fetch(`${API_BASE}/attendance/${clockingOut ? 'clock-out' : 'clock-in'}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+      const request = await authenticatedFetch(
+        `/attendance/${clockingOut ? 'clock-out' : 'clock-in'}`,
+        accessToken,
+        'lz-employee-token',
+        'lz-employee-refresh',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(clockingOut ? { notes: 'Clocked out via employee portal' } : { device: 'employee-portal' }),
         },
-        body: JSON.stringify(clockingOut ? { notes: 'Clocked out via employee portal' } : { device: 'employee-portal' }),
-      });
+      );
+      const response = request.response;
+      if (request.accessToken !== accessToken) setAccessToken(request.accessToken);
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.message || 'Attendance could not be recorded.');
 
@@ -130,6 +150,7 @@ export default function EmployeeClockInPage() {
   function handleLogout() {
     localStorage.removeItem('lz-employee-session');
     localStorage.removeItem('lz-employee-token');
+    localStorage.removeItem('lz-employee-refresh');
     setSession(null);
     setAccessToken('');
     setActiveRecord(null);
