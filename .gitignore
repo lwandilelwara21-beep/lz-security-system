@@ -3,6 +3,9 @@ node_modules
 dist
 .env
 .env.*
+*.db
+*.sqlite
+*.sqlite3
 *.log
 coverage
 .prisma
