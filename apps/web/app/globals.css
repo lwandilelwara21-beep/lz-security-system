@@ -258,6 +258,19 @@ button {
   text-decoration: underline;
 }
 
+.demo-credentials {
+  display: grid;
+  gap: 6px;
+  border-left: 3px solid var(--primary);
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.demo-credentials strong {
+  color: var(--text);
+}
+
 .clock-in-shell {
   display: flex;
   min-height: 100vh;

@@ -31,8 +31,9 @@ type AttendanceEntry = {
 
 export default function HomePage() {
   const router = useRouter();
-  const [employeeNumber, setEmployeeNumber] = useState('ADMIN001');
-  const [password, setPassword] = useState('');
+  const localDemo = process.env.NODE_ENV !== 'production';
+  const [employeeNumber, setEmployeeNumber] = useState(localDemo ? 'ADMIN001' : '');
+  const [password, setPassword] = useState(localDemo ? 'Admin@123' : '');
   const [session, setSession] = useState<UserSession | null>(null);
   const [accessToken, setAccessToken] = useState('');
   const [message, setMessage] = useState('');
@@ -289,6 +290,13 @@ export default function HomePage() {
                 required
               />
               <button type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
+              {localDemo ? (
+                <div className="demo-credentials" role="note">
+                  <strong>Local demo accounts</strong>
+                  <span>Administrator: ADMIN001 / Admin@123</span>
+                  <span>Employee clock-in: DEMO001 / Officer@123</span>
+                </div>
+              ) : null}
               {message ? <div className="message-box" role="status">{message}</div> : null}
               <a className="employee-portal-link" href="/clock-in">Go to employee clock-in</a>
             </form>

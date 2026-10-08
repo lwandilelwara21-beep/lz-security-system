@@ -1,6 +1,26 @@
 import { ensureDefaultAdmin } from './default-admin';
 
 describe('ensureDefaultAdmin', () => {
+  it('requires an explicit non-default administrator password in production', async () => {
+    const previousNodeEnv = process.env.NODE_ENV;
+    const previousAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD;
+    process.env.NODE_ENV = 'production';
+    delete process.env.DEFAULT_ADMIN_PASSWORD;
+
+    try {
+      await expect(ensureDefaultAdmin({} as any)).rejects.toThrow(
+        'Set DEFAULT_ADMIN_PASSWORD to a unique secret before production startup',
+      );
+    } finally {
+      process.env.NODE_ENV = previousNodeEnv;
+      if (previousAdminPassword === undefined) {
+        delete process.env.DEFAULT_ADMIN_PASSWORD;
+      } else {
+        process.env.DEFAULT_ADMIN_PASSWORD = previousAdminPassword;
+      }
+    }
+  });
+
   it('creates a linked employee and default site for the admin user', async () => {
     const prisma = {
       company: {
@@ -57,6 +77,14 @@ describe('ensureDefaultAdmin', () => {
           employeeId: 'employee-1',
           siteId: 'site-1',
           active: true,
+        }),
+      }),
+    );
+    expect(prisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          employeeNumber: 'DEMO001',
+          email: 'demo.officer@lzsecurity.local',
         }),
       }),
     );

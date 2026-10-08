@@ -24,8 +24,9 @@ type Confirmation = {
 };
 
 export default function EmployeeClockInPage() {
-  const [employeeNumber, setEmployeeNumber] = useState('');
-  const [password, setPassword] = useState('');
+  const localDemo = process.env.NODE_ENV !== 'production';
+  const [employeeNumber, setEmployeeNumber] = useState(localDemo ? 'DEMO001' : '');
+  const [password, setPassword] = useState(localDemo ? 'Officer@123' : '');
   const [session, setSession] = useState<UserSession | null>(null);
   const [accessToken, setAccessToken] = useState('');
   const [activeRecord, setActiveRecord] = useState<AttendanceEntry | null>(null);
@@ -193,6 +194,12 @@ export default function EmployeeClockInPage() {
               required
             />
             <button type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign in to clock'}</button>
+            {localDemo ? (
+              <div className="demo-credentials" role="note">
+                <strong>Local demo account</strong>
+                <span>DEMO001 / Officer@123</span>
+              </div>
+            ) : null}
           </form>
         ) : (
           <div className="clock-in-action">
