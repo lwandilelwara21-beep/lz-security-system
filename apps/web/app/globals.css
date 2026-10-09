@@ -1,14 +1,15 @@
 :root {
-  --bg: #0c1220;
-  --panel: #121c2d;
-  --panel-alt: #1b2a40;
-  --primary: #38bdf8;
-  --primary-strong: #0ea5e9;
-  --text: #e5edf9;
-  --muted: #9db2ca;
-  --border: rgba(148, 163, 184, 0.2);
-  --success: #22c55e;
-  --warning: #f59e0b;
+  --bg: #f3f5f2;
+  --panel: #ffffff;
+  --panel-alt: #f3f6f4;
+  --brand: #073b4c;
+  --primary: #f28a28;
+  --primary-strong: #e96324;
+  --text: #123a45;
+  --muted: #617579;
+  --border: rgba(7, 59, 76, 0.16);
+  --success: #208257;
+  --warning: #bd741c;
 }
 
 * { box-sizing: border-box; }
@@ -16,8 +17,8 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(180deg, #09111d 0%, #0f172a 100%);
+  font-family: "Segoe UI", "Aptos", sans-serif;
+  background: linear-gradient(135deg, #f7f8f6 0%, #eaf0ed 100%);
   color: var(--text);
 }
 
@@ -40,10 +41,10 @@ body {
 
 .login-panel,
 .dashboard-panel {
-  background: rgba(18, 28, 45, 0.9);
+  background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 20px;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 14px 32px rgba(7, 59, 76, 0.08);
 }
 
 .login-panel {
@@ -55,9 +56,9 @@ body {
 
 .brand-tag {
   display: inline-block;
-  background: rgba(56, 189, 248, 0.14);
-  color: var(--primary);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: rgba(242, 138, 40, 0.12);
+  color: var(--brand);
+  border: 1px solid rgba(242, 138, 40, 0.35);
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 12px;
@@ -82,18 +83,18 @@ label {
 }
 
 input {
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--border);
-  background: #0d1728;
+  background: #ffffff;
   color: var(--text);
   padding: 15px 14px;
   font-size: 1rem;
 }
 
 select {
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--border);
-  background: #0d1728;
+  background: #ffffff;
   color: var(--text);
   padding: 15px 14px;
   font-size: 1rem;
@@ -103,8 +104,8 @@ select {
   margin-top: 18px;
   background: rgba(34, 197, 94, 0.12);
   border: 1px solid rgba(34, 197, 94, 0.35);
-  color: #d1fae5;
-  border-radius: 12px;
+  color: #165b3a;
+  border-radius: 8px;
   padding: 12px 14px;
 }
 
@@ -115,9 +116,9 @@ button:disabled {
 
 button {
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
-  color: #05151f;
+  color: #073b4c;
   font-weight: 700;
   padding: 16px 18px;
   cursor: pointer;
@@ -134,9 +135,9 @@ button {
 
 .mini-panel {
   margin-top: 24px;
-  background: rgba(27, 42, 64, 0.8);
+  background: var(--panel-alt);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 16px 18px;
 }
 
@@ -153,7 +154,7 @@ button {
 }
 
 .mini-panel a {
-  color: var(--primary);
+  color: var(--brand);
   text-decoration: none;
 }
 
@@ -174,7 +175,7 @@ button {
 .stats-grid article {
   background: var(--panel-alt);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 20px 18px;
 }
 
@@ -198,7 +199,7 @@ button {
 .management-card {
   background: var(--panel-alt);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 18px;
 }
 
@@ -223,6 +224,26 @@ button {
 
 .admin-header {
   margin-bottom: 24px;
+}
+
+.admin-title {
+  flex: 1;
+}
+
+.admin-title h1 {
+  margin: 0;
+}
+
+.admin-title p {
+  margin: 7px 0 0;
+  color: var(--muted);
+}
+
+.admin-header-actions,
+.clock-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .admin-header h1 {
@@ -250,12 +271,77 @@ button {
 }
 
 .employee-portal-link {
-  color: var(--primary);
+  color: var(--brand);
   text-decoration: none;
 }
 
 .employee-portal-link:hover {
   text-decoration: underline;
+}
+
+.brand-identity {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+  color: var(--brand);
+  text-decoration: none;
+}
+
+.brand-mark {
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: contain;
+}
+
+.brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.brand-copy strong {
+  font-size: 0.98rem;
+  letter-spacing: 0.06em;
+}
+
+.brand-copy small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.install-app-control {
+  position: relative;
+}
+
+.install-app-button {
+  padding: 10px 13px;
+  border: 1px solid rgba(242, 138, 40, 0.55);
+  background: #fff7ed;
+  color: var(--brand);
+  white-space: nowrap;
+}
+
+.app-installed {
+  color: var(--success);
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.install-app-help {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(280px, calc(100vw - 32px));
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 8px 24px rgba(7, 59, 76, 0.12);
+  font-size: 0.85rem;
 }
 
 .demo-credentials {
@@ -292,19 +378,23 @@ button {
   text-decoration: none;
 }
 
+.clock-header-actions > span {
+  color: var(--muted);
+}
+
 .clock-in-panel {
   width: min(100%, 560px);
   margin: auto;
   padding: 36px;
-  background: rgba(18, 28, 45, 0.96);
+  background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 18px;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 14px 32px rgba(7, 59, 76, 0.08);
 }
 
 .eyebrow,
 .status-label {
-  color: var(--primary);
+  color: #bc5e1b;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -342,9 +432,9 @@ button {
 .shift-status {
   border: 1px solid var(--border);
   border-left: 4px solid var(--warning);
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 18px;
-  background: rgba(245, 158, 11, 0.08);
+  background: rgba(242, 138, 40, 0.08);
 }
 
 .shift-active {
@@ -386,7 +476,7 @@ button {
 }
 
 .clock-confirmation {
-  color: #d1fae5;
+  color: #165b3a;
   background: rgba(34, 197, 94, 0.14);
   border: 1px solid rgba(34, 197, 94, 0.45);
 }
@@ -399,7 +489,7 @@ button {
   place-items: center;
   border-radius: 50%;
   background: var(--success);
-  color: #052e16;
+  color: #ffffff;
   font-size: 0.7rem;
   font-weight: 800;
 }
@@ -410,12 +500,12 @@ button {
 }
 
 .clock-confirmation span:last-child {
-  color: #a7f3d0;
+  color: #28764f;
   font-size: 0.88rem;
 }
 
 .error-box {
-  color: #fee2e2;
+  color: #8f2020;
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.4);
 }
@@ -476,11 +566,33 @@ button {
     flex-direction: column;
   }
 
+  .admin-title {
+    width: 100%;
+  }
+
+  .admin-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .clock-in-shell {
     padding: 16px;
   }
 
   .clock-in-panel {
     padding: 24px 18px;
+  }
+
+  .clock-in-header,
+  .clock-header-actions {
+    align-items: flex-start;
+  }
+
+  .clock-in-header {
+    gap: 14px;
+  }
+
+  .clock-header-actions {
+    flex-direction: column;
   }
 }

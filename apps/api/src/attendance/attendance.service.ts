@@ -81,6 +81,7 @@ export class AttendanceService {
       id: record.id,
       employeeId: employee.id,
       siteId: site.id,
+      siteName: site.name,
       clockInAt,
       status: record.status,
       lateFlag,

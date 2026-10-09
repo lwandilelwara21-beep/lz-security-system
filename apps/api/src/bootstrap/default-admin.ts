@@ -2,7 +2,7 @@ import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 
 export async function ensureDefaultAdmin(prisma: PrismaService) {
-  const companyName = 'LZ Security Solutions';
+  const companyName = 'Imivuyo Security & Cleaning Services';
   const adminNumber = 'ADMIN001';
   const isProduction = process.env.NODE_ENV === 'production';
   const configuredAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD;
@@ -13,18 +13,27 @@ export async function ensureDefaultAdmin(prisma: PrismaService) {
 
   const adminPassword = configuredAdminPassword ?? 'Admin@123';
 
-  const existingCompany = await prisma.company.findFirst({
+  let company = await prisma.company.findFirst({
     where: { name: companyName },
   });
 
-  const company =
-    existingCompany ??
-    (await prisma.company.create({
-      data: {
-        name: companyName,
-        status: 'ACTIVE',
-      },
-    }));
+  if (!company) {
+    const legacyCompany = await prisma.company.findFirst({
+      where: { name: 'LZ Security Solutions' },
+    });
+
+    company = legacyCompany
+      ? await prisma.company.update({
+          where: { id: legacyCompany.id },
+          data: { name: companyName },
+        })
+      : await prisma.company.create({
+          data: {
+            name: companyName,
+            status: 'ACTIVE',
+          },
+        });
+  }
 
   const existingRole = await prisma.role.findFirst({
     where: {
@@ -62,7 +71,7 @@ export async function ensureDefaultAdmin(prisma: PrismaService) {
         companyId: company.id,
         roleId: role.id,
         employeeNumber: adminNumber,
-        email: 'admin@lzsecurity.local',
+        email: 'admin@imivuyocs.local',
         passwordHash: await bcrypt.hash(adminPassword, 10),
         firstName: 'System',
         lastName: 'Administrator',
@@ -98,6 +107,7 @@ export async function ensureDefaultAdmin(prisma: PrismaService) {
   }
 
   const defaultSiteName = 'Head Office';
+  const defaultSiteAddress = '6 Batting Road, Beacon Bay, East London, 5241';
   let site = await prisma.site.findFirst({
     where: {
       companyId: company.id,
@@ -110,9 +120,14 @@ export async function ensureDefaultAdmin(prisma: PrismaService) {
       data: {
         companyId: company.id,
         name: defaultSiteName,
-        address: 'Head Office',
+        address: defaultSiteAddress,
         active: true,
       },
+    });
+  } else if (site.address !== defaultSiteAddress) {
+    site = await prisma.site.update({
+      where: { id: site.id },
+      data: { address: defaultSiteAddress },
     });
   }
 

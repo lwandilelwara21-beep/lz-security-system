@@ -2,6 +2,35 @@ import { BadRequestException } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 
 describe('AttendanceService', () => {
+  it('includes the assigned site name in a successful clock-in result', async () => {
+    const prisma = {
+      employee: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'employee-1', active: true }),
+      },
+      siteAssignment: {
+        findFirst: jest.fn().mockResolvedValue({
+          site: { id: 'site-1', name: 'Head Office' },
+        }),
+      },
+      attendanceRecord: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockResolvedValue({ id: 'attendance-1', status: 'PRESENT' }),
+      },
+      attendanceEvent: {
+        create: jest.fn().mockResolvedValue({ id: 'event-1' }),
+      },
+    };
+
+    const service = new AttendanceService(prisma as any);
+    const result = await service.clockIn({ userId: 'user-1', companyId: 'company-1' });
+
+    expect(result).toMatchObject({
+      employeeId: 'employee-1',
+      siteId: 'site-1',
+      siteName: 'Head Office',
+    });
+  });
+
   it('rejects a duplicate clock-in for an already active attendance record', async () => {
     const prisma = {
       employee: {

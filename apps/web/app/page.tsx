@@ -3,6 +3,8 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authenticatedFetch } from '../lib/api';
+import { BrandIdentity } from './brand';
+import { InstallAppButton } from './install-app-button';
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3001'}/api/v1`;
 
@@ -253,16 +255,20 @@ export default function HomePage() {
     <main className="page-shell admin-shell">
       <section className="dashboard-panel">
         <header className="admin-header">
-          <div>
-            <span className="brand-tag">LZ Solutions</span>
+          <BrandIdentity />
+          <div className="admin-title">
             <h1>Administrator dashboard</h1>
+            <p>Integrated security and cleaning operations</p>
           </div>
-          {authenticated ? (
-            <div className="admin-session">
-              <span>{session?.employeeNumber}</span>
-              <button type="button" className="button-secondary" onClick={handleLogout}>Log out</button>
-            </div>
-          ) : null}
+          <div className="admin-header-actions">
+            <InstallAppButton />
+            {authenticated ? (
+              <div className="admin-session">
+                <span>{session?.employeeNumber}</span>
+                <button type="button" className="button-secondary" onClick={handleLogout}>Log out</button>
+              </div>
+            ) : null}
+          </div>
         </header>
 
         {!authenticated ? (

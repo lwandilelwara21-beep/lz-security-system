@@ -2,6 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { authenticatedFetch } from '../../lib/api';
+import { BrandIdentity } from '../brand';
+import { InstallAppButton } from '../install-app-button';
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3001'}/api/v1`;
 
@@ -134,7 +136,7 @@ export default function EmployeeClockInPage() {
 
       const eventTime = clockingOut ? result.clockOutAt : result.clockInAt;
       const time = eventTime ? new Date(eventTime).toLocaleString() : new Date().toLocaleString();
-      const site = activeRecord?.site?.name ?? lastRecord?.site?.name ?? 'Assigned site';
+      const site = result.siteName ?? activeRecord?.site?.name ?? lastRecord?.site?.name ?? 'Assigned site';
       setConfirmation({
         text: clockingOut ? 'Clocked out successfully' : 'Clocked in successfully',
         time,
@@ -163,8 +165,11 @@ export default function EmployeeClockInPage() {
   return (
     <main className="clock-in-shell">
       <header className="clock-in-header">
-        <a href="/" className="brand-tag">LZ Solutions</a>
-        <span>Employee attendance</span>
+        <BrandIdentity />
+        <div className="clock-header-actions">
+          <span>Employee attendance</span>
+          <InstallAppButton />
+        </div>
       </header>
 
       <section className="clock-in-panel">
@@ -235,7 +240,7 @@ export default function EmployeeClockInPage() {
         ) : null}
         {error ? <div className="error-box" role="alert">{error}</div> : null}
       </section>
-      <footer className="clock-in-footer">LZ Security Operations</footer>
+      <footer className="clock-in-footer">Imivuyo Security &amp; Cleaning Services · East London, South Africa</footer>
     </main>
   );
 }
